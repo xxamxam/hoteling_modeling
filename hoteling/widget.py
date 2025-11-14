@@ -123,7 +123,7 @@ def compute_min_revenue(positions2, sellers_set):
 
 
 # --- Панель в ноутбуке ---
-def panel_gt_interactive(g, revenue_function, pos_prop=None):
+def panel_gt_interactive(g, revenue_function: BaseRevenueFunction, pos_prop=None):
     # состояние
     node_ids, xy, edges, id2idx, pos_prop = gt_export_layout(g, pos_prop)
     sellers_set = set()
@@ -131,7 +131,7 @@ def panel_gt_interactive(g, revenue_function, pos_prop=None):
     max_iterations = 400
     show_labels = True
     base_cost = 10
-
+    revenue_function.base_cost = base_cost
     # виджеты
     out_plot = W.Output()
     out_stats = W.Output()  # правая панель статистики
@@ -224,7 +224,7 @@ def panel_gt_interactive(g, revenue_function, pos_prop=None):
     def on_base_cost_change(change):
         nonlocal base_cost, revenue_function
         base_cost = float(change["new"])
-        revenue_function = BaseRevenueFunction(base_cost)
+        revenue_function.base_cost = base_cost
         render()
     # wire
     btn_reset.on_click(on_reset)

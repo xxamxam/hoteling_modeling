@@ -4,7 +4,7 @@ from collections import defaultdict
 import dataclasses
 from dataclasses import dataclass
 
-from typing import Dict
+from typing import Dict, Union
 from graph_tool import Graph
 import numpy as np
 
@@ -17,7 +17,7 @@ from typing import Dict, Tuple, FrozenSet
 
 
 
-def nearest_source_labels_graphtool(g, weight_ep, sources, source_ids=None, eps=1e-12):
+def nearest_source_labels(g, weight_ep, sources, source_ids=None, eps=1e-12):
     """
     g: graph_tool.Graph
     weight_ep: EdgePropertyMap('double') with nonnegative weights
@@ -145,14 +145,13 @@ def bin_search(revenues: Dict, M, tol=1e-10):
                 left = mid
             else:
                 right = mid
-    lambd = right  #(right + left)/2
+    lambd = right
 
-    # setting sellers
+    # setting up sellers
     num_sellers = {k: 1 for k, v in revenues.items()}
     num_setted_sellers = sum(num_sellers.values())
     assert num_setted_sellers <= M
     if num_setted_sellers < M:
-        # из-за округления часть продавцов не доназначена. Назначааем их по оставшемуся бюджету
         remain_budgets = {k: revenues[k] - num_sellers[k] * lambd for k in revenues.keys()}
         while num_setted_sellers < M:
             pos = max(remain_budgets.items(), key=lambda x: x[1])[0]
@@ -163,12 +162,15 @@ def bin_search(revenues: Dict, M, tol=1e-10):
         {sum(num_sellers.values())} != {M}.\n{lambd=}  {revenues}"
     return num_sellers, lambd
 
-# Now we define classes for branch and bound
+
+# classes for B&B method
+
 
 class Status(str, Enum):
     UNEXPANDED = "UNEXPANDED"
     EXPANDED = "EXPANDED"
     FULLY_EXPANDED = "FULLY_EXPANDED"
+
 
 @dataclass
 class Node:
@@ -182,7 +184,8 @@ class Node:
     graph: Graph
     weights_name: str = "weight"
     M: int = 0
-    occupied_vertices: set = None
+    occupied_vertices: set = dataclasses.field(default_factory=set)
+    vertices: set = dataclasses.field(default_factory=set)
 
     parent: 'Node' = None
     status: Status = Status.UNEXPANDED
@@ -190,48 +193,66 @@ class Node:
     children: list = dataclasses.field(default_factory=list)
     value: float = 0.0
     bound: float = 0.0
+    
+    def __post_init__(self,):
+        if len(self.vertices) == 0:
+            self.vertices = {int(v) for v in self.graph.vertices()}
+
     @staticmethod
-    def get_positions(graph, occupied_vertices, M, weights_name, revenue_function, extended_return=False):
+    def get_positions(graph,
+                      occupied_vertices,
+                      M,
+                      weights_name,
+                      revenue_function,
+                      tol = 1e-12,
+                      extended_return=False) -> Union[float, Dict]:
+
         if len(occupied_vertices) == 0:
             if extended_return:
                 return {}
             else:
                 return 0.0
+
         weight_ep = graph.ep[weights_name]
         sources = [graph.vertex(v) for v in occupied_vertices]
-        distances, nearest, nearest_set = nearest_source_labels_graphtool(
+        
+        # compute nearest sellers for buyers
+        distances, nearest, nearest_set = nearest_source_labels(
             graph, weight_ep, sources, source_ids=list(occupied_vertices)
         )
+
+        # compute revenues per Vertice
         revenues = get_revenue(
             graph, distances, nearest_set, revenue_function
         )
-        num_sellers, lambd = bin_search(revenues, M)
+
+        # find minimal revenue per seller on graph
+        num_sellers, lambd = bin_search(revenues, M, tol=tol)
         if extended_return:
             return {"num_sellers": num_sellers,
-                "lambd": lambd,
-                "nearest_set": nearest_set,
-                "distances": distances,
-                "revenues": revenues
-                }  #, sum(revenues[k]*num_sellers[k] for k in num_sellers)
+                    "lambd": lambd,
+                    "nearest_set": nearest_set,
+                    "distances": distances,
+                    "revenues": revenues
+                    }
         else:
             return lambd
     
-    def compute_value(self, revenue_function):
+    def compute_value(self, revenue_function, tol):
         lambd = Node.get_positions(
             self.graph,
             self.occupied_vertices,
             self.M,
             self.weights_name,
             revenue_function,
+            tol=tol,
             extended_return=False
             )
         self.value = lambd
         return self.value
     
     def get_actions(self):
-        occupied = self.occupied_vertices
-        actions = [int(v) for v in self.graph.vertices() if v not in occupied]
-        return actions
+        return self.vertices - self.occupied_vertices
     
 
 class BaseRevenueFunction:
@@ -260,17 +281,17 @@ class runStatistics:
     rejected_nodes: int = 0
 
 class BBTree:
-    def __init__(self, graph: Graph, M:int, revenue_function: BaseRevenueFunction, cache_maxsize=200_000):
+    def __init__(self, graph: Graph, M:int, revenue_function: BaseRevenueFunction, cache_maxsize=200_000, tol = 1e-12, verbose = False):
         self.graph = graph
         self.M = M
         self.revenue_function = revenue_function
-
+        self.tol = tol
         self.root = Node(graph=graph, M=M, occupied_vertices=set())
-        self.root.value = self.root.compute_value(revenue_function)
+        self.root.value = self.root.compute_value(revenue_function, tol=self.tol)
 
-        self.best_value = self.root.value
+        self.best_value = 0
         self.occupation = None
-
+        self.verbose = verbose
         # set cache
         self.cache = MyCache(maxsize=cache_maxsize)
 
@@ -283,7 +304,8 @@ class BBTree:
             return  # cannot expand further
 
         actions = node.get_actions()
-        best_child_value = 0.
+        if self.verbose:
+            print(f"base: Vertices: {node.occupied_vertices} val: {node.value}")
         for action in actions:
 
             new_occupied = set(node.occupied_vertices)
@@ -296,29 +318,29 @@ class BBTree:
                 graph=node.graph,
                 M=node.M,
                 occupied_vertices=new_occupied,
+                vertices=node.vertices,
                 parent=node
             )
-            child_node.value = child_node.compute_value(self.revenue_function)
-            child_node.bound = child_node.value
-            
-            if child_node.value >= node.value:
+
+            child_node.bound = child_node.value = child_node.compute_value(self.revenue_function, self.tol)
+            self.cache.put(new_occupied, child_node.value)
+
+            if child_node.value >= node.value - 2 * self.tol:
+                if self.verbose:
+                    print(f"new node: Vertices: {new_occupied} val: {child_node.value}")
                 self.run_stat.open_nodes += 1
                 node.children.append(child_node)
-                self.cache.put(new_occupied, child_node.value)
-                best_child_value = max(best_child_value, child_node.value)
+                node.bound = max(node.bound, child_node.value)
 
                 # update best value
                 if child_node.value > self.best_value:
                     self.best_value = child_node.value
                     self.occupation = new_occupied
             else:
-                # bad action, cache it to avoid re-expanding
                 self.run_stat.rejected_nodes += 1
-                self.cache.put(new_occupied, child_node.value)
-            # node.children.append(child_node)
-        
+
         node.status = Status.EXPANDED
-        node.bound = best_child_value
+
     def select_node_to_expand(self, node: Node):
         # select child with highest value
         cur_node = node
@@ -329,6 +351,10 @@ class BBTree:
         return cur_node
     def backpropagate(self, node: Node):
         cur_node = node
+        # если не смогли расширить -- то делать тут нечего
+        if len(cur_node.children) == 0:
+            cur_node.status = Status.FULLY_EXPANDED
+
         while cur_node.parent is not None:
             parent = cur_node.parent
             if all(child.status == Status.FULLY_EXPANDED for child in parent.children):
@@ -341,3 +367,4 @@ class BBTree:
             node_to_expand = self.select_node_to_expand(self.root)
             self.expand_node(node_to_expand)
             self.backpropagate(node_to_expand)
+

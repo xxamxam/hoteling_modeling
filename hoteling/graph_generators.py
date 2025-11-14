@@ -25,12 +25,16 @@ def generate_line_graph(n: int) -> Graph:
 
     g = Graph(directed=False)
 
+    w = g.new_edge_property("double")
+    g.edge_properties["weight"] = w
+
     # Add vertices
     vertices = [g.add_vertex() for _ in range(n)]
 
     # Add edges
     for i in range(n - 1):
-        g.add_edge(vertices[i], vertices[i + 1])
+        ed = g.add_edge(vertices[i], vertices[i + 1])
+        g.edge_properties["weight"][ed] = 1.0
 
     return g
 
@@ -50,15 +54,19 @@ def generate_star_graph(n_leaves: int) -> Graph:
 
     g = Graph(directed=False)
 
+    w = g.new_edge_property("double")
+    g.edge_properties["weight"] = w
+
     # Add vertices: center (index 0) + leaves
     vertices = [g.add_vertex() for _ in range(n_leaves + 1)]
 
     # Connect center to all leaves
     center = vertices[0]
     for leaf in vertices[1:]:
-        g.add_edge(center, leaf)
+        ed = g.add_edge(center, leaf)
+        g.edge_properties["weight"][ed] = 1.0
 
-    return (g)
+    return g
 
 
 def generate_random_tree(n: int, seed: Optional[int] = None) -> Graph:
@@ -81,15 +89,19 @@ def generate_random_tree(n: int, seed: Optional[int] = None) -> Graph:
 
     g = Graph(directed=False)
 
+    w = g.new_edge_property("double")
+    g.edge_properties["weight"] = w
+
     # Add vertices
     vertices = [g.add_vertex() for _ in range(n)]
 
     # Generate random tree using Prufer code or similar
     if n == 1:
-        return (g)
+        return g
     elif n == 2:
-        g.add_edge(vertices[0], vertices[1])
-        return (g)
+        ed = g.add_edge(vertices[0], vertices[1])
+        g.edge_properties["weight"][ed] = 1.0
+        return g
 
     # Use a simple random tree generation algorithm
     # Start with vertex 0, then add vertices one by one
@@ -102,11 +114,12 @@ def generate_random_tree(n: int, seed: Optional[int] = None) -> Graph:
         # Connect to random connected vertex
         connected_vertex = random.choice(list(connected))
 
-        g.add_edge(vertices[new_vertex], vertices[connected_vertex])
+        ed = g.add_edge(vertices[new_vertex], vertices[connected_vertex])
+        g.edge_properties["weight"][ed] = 1.0
         connected.add(new_vertex)
         unconnected.remove(new_vertex)
 
-    return (g)
+    return g
 
 
 def generate_grid_graph(rows: int, cols: int) -> Graph:

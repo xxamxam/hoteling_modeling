@@ -3,4 +3,7 @@
 !.pixi/config.toml
 *__pycache__*
 .venv
+.DS_Store# pixi environments
+.pixi/*
+!.pixi/config.toml
 .DS_Store

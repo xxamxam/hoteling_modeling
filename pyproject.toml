@@ -1,13 +1,22 @@
 [project]
 authors = [{name = "xxamxam", email = "158594847+tmpuser1233@users.noreply.github.com"}]
-dependencies = []
+dependencies = [ "ipykernel>=7.1.0,<8", 
+                "ipywidgets>=8.1.8,<9", 
+                "cachetools>=6.2.2,<7", 
+                "anywidget>=0.9.21,<0.10", 
+                "pip>=25.3,<26", "plotly>=6.4.0,<7",
+                "numpy", 
+                "networkx>=3.5,<4", "dash>=3.3.0,<4"]
 name = "hoteling"
-requires-python = ">= 3.11"
+requires-python = "== 3.12"
 version = "0.1.0"
 
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["hoteling"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
@@ -15,18 +24,16 @@ platforms = ["osx-arm64"]
 
 [tool.pixi.pypi-dependencies]
 hoteling = { path = ".", editable = true }
+streamlit-plotly-events = ">=0.0.6"
+dash = ">=2.0.0"
+dash-bootstrap-components = ">=1.0.0"
+dash-table = ">=5.0.0"
+pandas = ">=1.0.0"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src"]
 
 [tool.pixi.tasks]
 
 [tool.pixi.dependencies]
-graph-tool = ">=2.98,<3"
-ipykernel = ">=7.1.0,<8"
-ipywidgets = ">=8.1.8,<9"
-cachetools = ">=6.2.1,<7"
-plotly = ">=6.4.0,<7"
-anywidget = ">=0.9.21,<0.10"
-pip = ">=25.3,<26"
-
+python = "3.12.*"
+graph-tool = ">=2.97"
+scipy = "<=1.15"

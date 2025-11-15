@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 from graph_tool.draw import sfdp_layout
 import dash
 from dash import Dash, dcc, html, Input, Output, State
-from hoteling.branch_bound import BaseRevenueFunction, Node
+from hoteling.algorithms.branch_bound import BaseRevenueFunction, Node
 
 
 from dash import dcc, html

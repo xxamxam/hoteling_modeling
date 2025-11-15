@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 
 from graph_tool.draw import sfdp_layout
 
+from hoteling.game_evaluation import evaluate_sellers
 
 # Global for layout persistence
 chart_pos_prop = None
@@ -74,7 +75,7 @@ def make_figure(g, sellers_set, M=5, rf=None, show_labels=True):
     global chart_pos_prop, chart_node_ids, chart_xy, chart_edges, current_g_vertices
 
     if rf is None:
-        from hoteling.branch_bound import BaseRevenueFunction
+        from hoteling.algorithms.branch_bound import BaseRevenueFunction
         rf = BaseRevenueFunction()
 
     # Always compute layout since fixed per g; force recalc if g changed or none
@@ -86,8 +87,7 @@ def make_figure(g, sellers_set, M=5, rf=None, show_labels=True):
         pass
 
     # Positions
-    from hoteling.branch_bound import Node
-    positions = Node.get_positions(g, sellers_set, M, "weight", rf, extended_return=True)
+    positions = evaluate_sellers(g, sellers_set, M, "weight", rf, extended_return=True)
 
     # Labels etc.
     labels, colors, sizes = make_labels_colors_sizes(g, positions, sellers_set, chart_node_ids, show_labels)

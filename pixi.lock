@@ -129,6 +129,7 @@ environments:
       - pypi: https://files.pythonhosted.org/packages/ec/f9/7f9263c5695f4bd0023734af91bedb2ff8209e8de6ead162f35d8dc762fd/flask-3.1.2-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a0/61/5c78b91c3143ed5c14207f463aecfc8f9dbb5092fb2869baf37c273b2705/gitdb-4.0.12-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/01/61/d4b89fec821f72385526e1b9d9a3a0385dda4a72b206d28049e2c7cd39b8/gitpython-3.1.45-py3-none-any.whl
+      - pypi: https://files.pythonhosted.org/packages/b6/9d/cd4777dbcf3bef9d9627e0fe4bc43d2e294b1baeb01d0422399d5e9de319/HeapDict-1.0.1-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/0e/61/66938bbb5fc52dbdf84594873d5b51fb1f7c7794e9c0f5bd885f30bc507b/idna-3.11-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/20/b0/36bd937216ec521246249be3bf9855081de4c5e06a0c9b4219dbeda50373/importlib_metadata-8.7.0-py3-none-any.whl
       - pypi: https://files.pythonhosted.org/packages/a3/17/20c2552266728ceba271967b87919664ecc0e33efca29c3efc6baf88c5f9/ipykernel-7.1.0-py3-none-any.whl
@@ -850,6 +851,10 @@ packages:
   purls: []
   size: 1537764
   timestamp: 1762373922469
+- pypi: https://files.pythonhosted.org/packages/b6/9d/cd4777dbcf3bef9d9627e0fe4bc43d2e294b1baeb01d0422399d5e9de319/HeapDict-1.0.1-py3-none-any.whl
+  name: heapdict
+  version: 1.0.1
+  sha256: 6065f90933ab1bb7e50db403b90cab653c853690c5992e69294c2de2b253fc92
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/hicolor-icon-theme-0.17-hce30654_2.tar.bz2
   sha256: 286e33fb452f61133a3a61d002890235d1d1378554218ab063d6870416440281
   md5: 237b05b7eb284d7eebc3c5d93f5e4bca
@@ -861,7 +866,7 @@ packages:
 - pypi: ./
   name: hoteling
   version: 0.1.0
-  sha256: b6a6751262f8956677825da4ec693c39af9727b2e28223682398a493f6cd0c5f
+  sha256: 0c59e4a066e386de97e3c9ceb1fb3e529638db346d7b74f755f701565d1251d0
   requires_dist:
   - ipykernel>=7.1.0,<8
   - ipywidgets>=8.1.8,<9
@@ -872,6 +877,7 @@ packages:
   - numpy
   - networkx>=3.5,<4
   - dash>=3.3.0,<4
+  - heapdict>=1.0.1,<2
   requires_python: ==3.12
   editable: true
 - conda: https://conda.anaconda.org/conda-forge/osx-arm64/icu-75.1-hfee45f7_0.conda

@@ -1,13 +1,14 @@
 # hotelling_game.py - Main game state and logic for Hotelling's model
 
 import numpy as np
-from hoteling.branch_bound import BaseRevenueFunction, Node
-from hoteling.graph_generators import (
+from hoteling.algorithms.branch_bound import BaseRevenueFunction, Node
+from hoteling.generators.graph_generators import (
     generate_line_graph, generate_star_graph, generate_random_tree,
     generate_grid_graph
 )
-from hoteling.branch_bound import BBTree
+from hoteling.algorithms.branch_bound import BBTree, BBHeap
 from hoteling.dash_panel.dash_plot import make_figure
+from hoteling.game_evaluation import evaluate_sellers
 
 class HotellingGame:
     def __init__(self, graph=None, initial_M=3, rf=None, max_iter=1000, cache_size=200000):
@@ -66,7 +67,7 @@ class HotellingGame:
     def run_branch_and_bound(self):
         if self.graph is None:
             raise ValueError("Graph not set")
-        bbt = BBTree(self.graph, self.M, self.rf, verbose=False, cache_maxsize=self.cache_size)
+        bbt = BBHeap(self.graph, self.M, self.rf, verbose=True, cache_maxsize=self.cache_size)
         bbt.run(max_iterations=self.max_iter)
         self.sellers_set = set(int(x) for x in bbt.occupation)
         run_stats = bbt.run_stat
@@ -76,7 +77,9 @@ class HotellingGame:
         if not self.graph or not self.sellers_set:
             return "Sellers Statistics\nNo sellers"
 
-        positions = Node.get_positions(self.graph, self.sellers_set, self.M, "weight", self.rf, extended_return=True)
+        positions = evaluate_sellers(self.graph, self.sellers_set, self.M, "weight", self.rf, extended_return=True)
+        assert isinstance(positions, dict)
+
         num_sellers = positions.get("num_sellers", {})
         revenues = positions.get("revenues", {})
         # Sort by revenue ascending

@@ -2,12 +2,13 @@
 
 from dash import Dash, Input, Output, State
 import dash
-from hoteling.branch_bound import BaseRevenueFunction
+
+from hoteling.algorithms.branch_bound import BaseRevenueFunction
 from hoteling.dash_panel.dash_html import create_layout
-from hoteling.dash_panel.hotelling_game import HotellingGame
+from hoteling.hotelling_game import HotellingGame
 
 
-def create_minimal_dash_app(g, initial_M=3, rf=None):
+def create_dash_app(g, initial_M=3, rf=None):
     app = Dash(__name__)
 
     if rf is None:
@@ -96,6 +97,7 @@ def create_minimal_dash_app(g, initial_M=3, rf=None):
                 info_text = game.run_branch_and_bound()
             except Exception as e:
                 info_text = f"B&B error: {str(e)}"
+                raise e
 
         elif trigger == "graph":
             nid = click["points"][0]["customdata"] if click else None
@@ -113,13 +115,3 @@ def create_minimal_dash_app(g, initial_M=3, rf=None):
         return fig, list(game.sellers_set), info_text, stats_text, game_state["rf"]
 
     return app
-
-
-# Example:
-if __name__ == "__main__":
-    from hoteling.graph_generators import generate_line_graph
-    from hoteling.branch_bound import BaseRevenueFunction
-    g = generate_line_graph(6)
-    rf = BaseRevenueFunction(base_cost=10)
-    app = create_minimal_dash_app(g, initial_M=3, rf=rf)
-    app.run(debug=True)

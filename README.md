@@ -24,12 +24,13 @@ This project implements a simulation and optimization framework for Hotelling's 
 ### Setup Instructions
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/xxamxam/hoteling_modeling.git
    cd hoteling_modeling
    ```
-
 2. Install dependencies using pixi (recommended) or pip:
+
    ```bash
    # Using pixi
    pixi install
@@ -37,7 +38,6 @@ This project implements a simulation and optimization framework for Hotelling's 
    # Or using pip
    pip install -e .
    ```
-
 3. Ensure graph-tool is properly installed (may require conda environment setup)
 
 ### Running the Web Dashboard
@@ -45,7 +45,7 @@ This project implements a simulation and optimization framework for Hotelling's 
 To run the interactive web application:
 
 ```bash
-python -m hoteling.dash_panel.simple_interactive_dash_test
+python -m hoteling.dash_panel.run
 ```
 
 This will start a Dash server on http://127.0.0.1:8050 (or 8051) with debug mode enabled.
@@ -93,24 +93,30 @@ pixi.lock              # Environment lock file
 ### Core Components
 
 #### Graph Generators (`graph_generators.py`)
+
 Provides functions to generate different graph structures:
+
 - `generate_line_graph(n)`: Linear graph with n vertices
 - `generate_star_graph(n_leaves)`: Star graph with center and n leaves
 - `generate_random_tree(n, seed)`: Random tree with n vertices
 - `generate_grid_graph(rows, cols)`: Grid graph
 
 #### Branch & Bound Algorithm (`branch_bound.py`)
+
 - `BaseRevenueFunction`: Revenue calculation class
 - `Node`: Position calculation for sellers
 - `BBTree`: Optimization algorithm to find optimal seller placements
 
 #### Web Dashboard (`dash_panel/`)
+
 Interactive interface with:
+
 - **Left Panel**: Controls for graph generation, seller management, algorithm parameters
 - **Middle Panel**: Interactive graph visualization with click-to-add/remove sellers
 - **Right Panel**: Seller statistics sorted by revenue
 
 Key features:
+
 - Generate new graphs with customizable parameters
 - Manual seller placement via graph clicks
 - Automatic optimization using Branch & Bound
@@ -139,12 +145,14 @@ print(f"Optimal seller positions: {bbt.occupation}")
 ## Hotelling's Model Theory
 
 Hotelling's model studies spatial competition where:
+
 - Consumers are located on a graph
 - Sellers set prices and locations
 - Consumer chooses nearest seller (ties broken arbitrarily)
 - Revenue calculations based on market share and distance/price
 
 In this implementation:
+
 - Graph represents market locations
 - Edges represent possible connections
 - Sellers compete for consumer clusters
@@ -153,12 +161,14 @@ In this implementation:
 ## Parameters
 
 ### Algorithm Parameters
+
 - `M`: Total number of sellers
 - `base_cost`: Fixed cost per seller per period
 - `max_iterations`: Branch & Bound iteration limit
 - `cache_maxsize`: LRU cache size for performance
 
 ### Graph Types
+
 Each with customizable size parameters for experimentation
 
 ## Dependencies

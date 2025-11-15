@@ -5,8 +5,8 @@ import ipywidgets as W
 from IPython.display import display, clear_output
 from graph_tool.draw import sfdp_layout
 
-from hoteling.branch_bound import BBTree, BaseRevenueFunction, Node
-
+from hoteling.algorithms.branch_bound import BBTree, BaseRevenueFunction, Node
+from hoteling.game_evaluation import evaluate_sellers
 
 # --- Экспорт из graph-tool ---
 def gt_export_layout(g, pos_prop=None):
@@ -155,8 +155,9 @@ def panel_gt_interactive(g, revenue_function: BaseRevenueFunction, pos_prop=None
             # update num_M
             s = len(sellers_set)
             num_M.value = s
-            
-        positions2 = Node.get_positions(g, sellers_set, current_M, "weight", revenue_function, extended_return=True)
+
+        positions2 = evaluate_sellers(g, sellers_set, current_M, "weight", revenue_function, extended_return=True)
+        assert isinstance(positions2, dict)
         labels, colors, sizes = make_labels_colors_sizes(g, positions2, sellers_set, node_ids)
         fig = go.Figure()
         gt_build_plotly(fig, node_ids, xy, edges, labels, colors, sizes, show_labels=show_labels)

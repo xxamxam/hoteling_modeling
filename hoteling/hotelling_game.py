@@ -35,6 +35,7 @@ class HotellingGame:
             self.cache_size = cache_size
 
     def set_graph(self, generator_name, **params):
+        print(params.get("tree_seed"))
         generators = {
             "line": lambda: generate_line_graph(int(params.get("line_n") or 6)),
             "star": lambda: generate_star_graph(int(params.get("star_n_leaves") or 3)),
@@ -67,7 +68,13 @@ class HotellingGame:
     def run_branch_and_bound(self):
         if self.graph is None:
             raise ValueError("Graph not set")
-        bbt = BBHeap(self.graph, self.M, self.rf, verbose=True, cache_maxsize=self.cache_size)
+        bbt = BBHeap(self.graph,
+                     self.M,
+                     self.rf,
+                     verbose=False,
+                     cache_maxsize=self.cache_size
+                     )
+
         bbt.run(max_iterations=self.max_iter)
         self.sellers_set = set(int(x) for x in bbt.occupation)
         run_stats = bbt.run_stat
@@ -96,8 +103,14 @@ class HotellingGame:
         stats_text = f"Sellers Statistics\nMinimal Revenue: {min_rps:.3f}\n" + "\n".join(stats_lines)
         return stats_text
 
-    def make_figure(self, show_labels=True):
-        return make_figure(self.graph, self.sellers_set, self.M, self.rf, show_labels)
+    def make_figure(self, show_labels=True, redraw: int =0):
+        return make_figure(self.graph,
+                           self.sellers_set,
+                           self.M,
+                           self.rf,
+                           show_labels,
+                           redraw=redraw
+                           )
 
     def to_dict(self):
         return {

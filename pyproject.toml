@@ -6,7 +6,7 @@ dependencies = [ "ipykernel>=7.1.0,<8",
                 "anywidget>=0.9.21,<0.10", 
                 "pip>=25.3,<26", "plotly>=6.4.0,<7",
                 "numpy", 
-                "networkx>=3.5,<4", "dash>=3.3.0,<4", "heapdict>=1.0.1,<2"]
+                "networkx>=3.5,<4", "dash>=3.3.0,<4", "heapdict>=1.0.1,<2", "fire>=0.7.1,<0.8"]
 name = "hoteling"
 requires-python = "== 3.12"
 version = "0.1.0"

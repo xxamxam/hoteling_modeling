@@ -6,13 +6,14 @@ import plotly.graph_objects as go
 from graph_tool.draw import sfdp_layout
 
 from hoteling.game_evaluation import evaluate_sellers
+from hoteling.algorithms.branch_bound import BaseRevenueFunction
 
 # Global for layout persistence
 chart_pos_prop = None
 chart_node_ids = None
 chart_xy = None
 chart_edges = None
-current_g_vertices = 0
+current_g_vertices = -1
 
 
 def gt_export_layout(g, pos_prop=None):
@@ -48,7 +49,10 @@ def gt_build_plotly(fig, node_ids, xy, edges, labels, colors, sizes):
         hovertemplate="%{text}",
     ))
 
-    fig.update_layout(xaxis=dict(visible=False), yaxis=dict(visible=False), height=700)
+    fig.update_layout(xaxis=dict(visible=False),
+                      yaxis=dict(visible=False),
+                      margin=dict(l=0, r=0, t=0, b=10)
+                      )
     return fig
 
 
@@ -71,17 +75,23 @@ def make_labels_colors_sizes(g, positions, sellers_set, node_ids, show_labels=Tr
     return labels, colors, sizes
 
 
-def make_figure(g, sellers_set, M=5, rf=None, show_labels=True):
+def make_figure(g,
+                sellers_set,
+                M=5,
+                rf=None,
+                show_labels=True,
+                redraw:
+                int = 0
+                ):
+
     global chart_pos_prop, chart_node_ids, chart_xy, chart_edges, current_g_vertices
 
     if rf is None:
-        from hoteling.algorithms.branch_bound import BaseRevenueFunction
         rf = BaseRevenueFunction()
-
     # Always compute layout since fixed per g; force recalc if g changed or none
-    if chart_pos_prop is None or g.num_vertices() != current_g_vertices:
+    if chart_pos_prop is None or id(g) != current_g_vertices or redraw:
         chart_node_ids, chart_xy, chart_edges, id2idx, chart_pos_prop = gt_export_layout(g)
-        current_g_vertices = g.num_vertices()
+        current_g_vertices = id(g)
     else:
         # Reuse
         pass

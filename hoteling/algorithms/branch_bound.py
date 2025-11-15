@@ -123,7 +123,7 @@ class BBHeap:
         self.queue[root_node] = -value
 
         self.best_value = 0
-        self.occupation = None
+        self.occupation = set()
         self.verbose = verbose
 
         # statistcs

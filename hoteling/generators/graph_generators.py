@@ -69,7 +69,7 @@ def generate_star_graph(n_leaves: int) -> Graph:
     return g
 
 
-def generate_random_tree(n: int, seed: Optional[int] = None) -> Graph:
+def generate_random_tree(n: int, seed: Optional[int] = 0) -> Graph:
     """
     Generate a random tree with n vertices.
 
@@ -83,9 +83,12 @@ def generate_random_tree(n: int, seed: Optional[int] = None) -> Graph:
     if n < 1:
         raise ValueError("Number of vertices must be at least 1")
 
-    if seed is not None:
-        np.random.seed(seed)
-        random.seed(seed)
+    # Create a random generator with the seed
+    seed = seed if seed == 0 else random.randint(1, 1_000_000)
+
+    rng = np.random.default_rng(seed)
+
+    # random.Random(seed) if seed is not None else random.Random()
 
     g = Graph(directed=False)
 
@@ -110,9 +113,9 @@ def generate_random_tree(n: int, seed: Optional[int] = None) -> Graph:
 
     while unconnected:
         # Pick random unconnected vertex
-        new_vertex = random.choice(list(unconnected))
+        new_vertex = rng.choice(list(unconnected))
         # Connect to random connected vertex
-        connected_vertex = random.choice(list(connected))
+        connected_vertex = rng.choice(list(connected))
 
         ed = g.add_edge(vertices[new_vertex], vertices[connected_vertex])
         g.edge_properties["weight"][ed] = 1.0

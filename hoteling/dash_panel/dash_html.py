@@ -13,6 +13,10 @@ from hoteling.algorithms.branch_bound import BaseRevenueFunction, Node
 from dash import dcc, html
 from .dash_plot import make_figure
 
+# Layout constants
+LEFT_PANEL_WIDTH_PERCENT = 20
+RIGHT_PANEL_WIDTH_PERCENT = 15
+
 def create_show_labels_checklist():
     return html.Div(style={"position": "absolute", "top": "10px", "right": "10px"}, children=[
         dcc.Checklist(
@@ -36,10 +40,10 @@ def create_layout(game):
         dcc.Store(id="rf", data={"base_cost": game.base_cost}),
         dcc.Store(id="current-graph", data=None),  # Not used for now
 
-        # Layout like original: left controls, middle graph, right stats
+        # Layout: left 20%, right 15%, middle remaining
         html.Div(style={"display": "flex", "height": "100vh"}, children=[
             # Left: Controls
-            html.Div(style={"width": "300px", "height": "100%", "display": "flex", "flexDirection": "column"}, children=[
+            html.Div(style={"width": f"{LEFT_PANEL_WIDTH_PERCENT}%", "height": "100%", "display": "flex", "flexDirection": "column"}, children=[
                 html.Div(style={"padding": "10px", "overflowY": "auto"}, children=[
                     html.H3("Graph Generation"),
                     dcc.Dropdown(
@@ -94,8 +98,8 @@ def create_layout(game):
                             ),
                             dcc.Input(
                                 id="tree-seed",
-                                type="text",
-                                value="",
+                                type="number",
+                                value="0",
                                 placeholder="Random seed",
                                 style={"width": "100%", "marginTop": "5px"}
                             )
@@ -140,8 +144,34 @@ def create_layout(game):
                         }
                     ),
                     html.Hr(),
+                    html.Div([
+                        dcc.Upload(
+                            id="upload-graph",
+                            children=html.Div([
+                                "Drag and Drop or Click to select a Graph File"
+                            ], style={"textAlign": "center", "margin": "10px"}),
+                            multiple=False,
+                            style={"border": "2px dashed #aaa", "borderRadius": "5px"}
+                        ),
+                        html.Button(
+                            "Load Graph from File",
+                            id="load-file-btn",
+                            style={
+                                "width": "100%",
+                                "padding": "8px",
+                                "backgroundColor": "#2196F3",
+                                "color": "white",
+                                "border": "none",
+                                "borderRadius": "5px",
+                                "fontSize": "14px",
+                                "cursor": "pointer",
+                                "marginTop": "5px"
+                            }
+                        )
+                    ]),
+                    html.Hr(),
                     html.Button(
-                        "Recompute",
+                        "Redraw",
                         id="recompute-btn",
                         style={
                             "width": "100%",
@@ -276,7 +306,7 @@ def create_layout(game):
             ]),
 
             # Right: Stats
-            html.Div(style={"width": "300px", "padding": "10px", "height": "100%", "display": "flex", "flexDirection": "column"}, children=[
+            html.Div(style={"width": f"{RIGHT_PANEL_WIDTH_PERCENT}%", "padding": "10px", "height": "100%", "display": "flex", "flexDirection": "column"}, children=[
                 html.Pre(id="stats-display", children=stats_text, style={"border": "1px solid #ddd", "padding": "5px", "flex": "1", "overflowY": "auto"}),
             ]),
         ]),

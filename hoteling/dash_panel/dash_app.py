@@ -9,7 +9,7 @@ from hoteling.hotelling_game import HotellingGame
 
 
 def create_dash_app(g, initial_M=3, rf=None):
-    app = Dash(__name__)
+    app = Dash(__name__, )
 
     if rf is None:
         rf = BaseRevenueFunction()
@@ -62,17 +62,19 @@ def create_dash_app(g, initial_M=3, rf=None):
         State("grid-cols", "value"),
         State("sellers", "data"),
         State("rf", "data"),
+        State("upload-graph", "contents"),
+        State("upload-graph", "filename"),
         State("show-labels-checkbox", "value"),
+        Input("load-file-btn", "n_clicks"),
         prevent_initial_call=True,
     )
     def update_graph(click, m_val, base_val, recompute, bb, reset, generate,
                      max_iter_input, cache_input, generator, line_n, star_n_leaves,
                      tree_n, tree_seed, grid_rows, grid_cols, sellers_data, rf_data,
-                     show_labels_checkbox):
+                     upload_contents, upload_filename, show_labels_checkbox, load_file):
         # Get triggered component
         trigger = dash.callback_context.triggered[0]["prop_id"].split(".")[0] if dash.callback_context.triggered else None
         show_labels = "show" in (show_labels_checkbox or [])
-
         game.update_parameters(M=m_val, base_cost=base_val,
                                max_iter=max_iter_input, cache_size=cache_input)
 
@@ -88,16 +90,40 @@ def create_dash_app(g, initial_M=3, rf=None):
             except Exception as e:
                 info_text = f"Error generating graph: {str(e)}"
 
+        elif trigger == "recompute-btn":
+            info_text = "Redrawn"
+
         elif trigger == "reset-btn":
             game.reset_sellers()
             info_text = "Sellers reset"
-
+    
         elif trigger == "bb-btn":
             try:
                 info_text = game.run_branch_and_bound()
             except Exception as e:
                 info_text = f"B&B error: {str(e)}"
-                raise e
+
+        elif trigger == "load-file-btn":
+            if upload_contents is not None:
+                import base64
+                import tempfile
+                import os
+                try:
+                    content_string = upload_contents.split(',')[1]
+                    content_decoded = base64.b64decode(content_string)
+                    with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.txt') as temp_file:
+                        temp_file.write(content_decoded.decode('utf-8'))
+                        temp_path = temp_file.name
+                    from hoteling.generators.graph_reader import read_graph_from_file
+                    g_loaded = read_graph_from_file(temp_path)
+                    game.graph = g_loaded
+                    game.sellers_set = set()
+                    info_text = f"Loaded graph from file: {upload_filename or 'file'}"
+                    os.unlink(temp_path)
+                except Exception as e:
+                    info_text = f"Error loading graph from file: {str(e)}"
+            else:
+                info_text = "No file uploaded"
 
         elif trigger == "graph":
             nid = click["points"][0]["customdata"] if click else None
@@ -108,7 +134,7 @@ def create_dash_app(g, initial_M=3, rf=None):
         else:
             info_text = "Updated parameters"
 
-        fig = game.make_figure(show_labels=show_labels)
+        fig = game.make_figure(show_labels=show_labels, redraw=recompute)
         stats_text = game.compute_stats()
         game_state = game.to_dict()
 

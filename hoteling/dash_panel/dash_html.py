@@ -13,18 +13,27 @@ from hoteling.branch_bound import BaseRevenueFunction, Node
 from dash import dcc, html
 from .dash_plot import make_figure
 
+def create_show_labels_checklist():
+    return html.Div(style={"position": "absolute", "top": "10px", "right": "10px"}, children=[
+        dcc.Checklist(
+            id="show-labels-checkbox",
+            options=[{"label": "Show Labels", "value": "show"}],
+            value=["show"]
+        )
+    ])
 
 
-def create_layout(g, initial_M, rf):
-    # Initial state
-    sellers = []
-    fig = make_figure(g, set(), initial_M, rf)
-    stats_text = "No sellers"
+
+def create_layout(game):
+    # Initial state using game
+    sellers = list(game.sellers_set)
+    fig = game.make_figure()
+    stats_text = game.compute_stats()
 
     return html.Div([
         # Stores
         dcc.Store(id="sellers", data=sellers),
-        dcc.Store(id="rf", data={"base_cost": rf.base_cost}),
+        dcc.Store(id="rf", data={"base_cost": game.base_cost}),
         dcc.Store(id="current-graph", data=None),  # Not used for now
 
         # Layout like original: left controls, middle graph, right stats
@@ -151,7 +160,7 @@ def create_layout(g, initial_M, rf):
                         dcc.Input(
                             id="M-input",
                             type="number",
-                            value=initial_M,
+                            value=game.M,
                             min=1,
                             style={
                                 "width": "100%",
@@ -167,7 +176,7 @@ def create_layout(g, initial_M, rf):
                         dcc.Input(
                             id="base-input",
                             type="number",
-                            value=rf.base_cost,
+                            value=game.base_cost,
                             step=0.1,
                             style={
                                 "width": "100%",
@@ -184,7 +193,7 @@ def create_layout(g, initial_M, rf):
                             id="max-iter-input",
                             type="number",
                             min=10,
-                            value=1000,
+                            value=game.max_iter,
                             step=10,
                             style={
                                 "width": "100%",
@@ -201,7 +210,7 @@ def create_layout(g, initial_M, rf):
                             id="cache-input",
                             type="number",
                             min=1000,
-                            value=200000,
+                            value=game.cache_size,
                             step=1000,
                             style={
                                 "width": "100%",
@@ -252,6 +261,13 @@ def create_layout(g, initial_M, rf):
                         "fontSize": "12px"
                     }
                 ),
+                html.Div(style={"padding": "10px"}, children=[
+                    dcc.Checklist(
+                        id="show-labels-checkbox",
+                        options=[{"label": "Show Labels", "value": "show"}],
+                        value=["show"]
+                    )
+                ]),
             ]),
 
             # Middle: Graph

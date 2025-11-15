@@ -51,7 +51,7 @@ def gt_build_plotly(fig, node_ids, xy, edges, labels, colors, sizes):
     return fig
 
 
-def make_labels_colors_sizes(g, positions, sellers_set, node_ids):
+def make_labels_colors_sizes(g, positions, sellers_set, node_ids, show_labels=True):
     num_sellers = positions.get("num_sellers", {})
     revenues = positions.get("revenues", {})
 
@@ -60,17 +60,17 @@ def make_labels_colors_sizes(g, positions, sellers_set, node_ids):
         if nid in sellers_set:
             k = num_sellers.get(nid, 1)
             rev = revenues.get(nid, 0.0)
-            labels.append(f"id:{nid}<br>k:{k}<br>${rev:.2f}")
+            labels.append(f"id:{nid}<br>k:{k}<br>$/k:{rev/k:.2f}")
             colors.append("#e67e22")
             sizes.append(18)
         else:
-            labels.append(f"id:{nid}")
+            labels.append(f"id:{nid}" if show_labels else "")
             colors.append("#546e7a")
             sizes.append(14)
     return labels, colors, sizes
 
 
-def make_figure(g, sellers_set, M=5, rf=None):
+def make_figure(g, sellers_set, M=5, rf=None, show_labels=True):
     global chart_pos_prop, chart_node_ids, chart_xy, chart_edges, current_g_vertices
 
     if rf is None:
@@ -90,7 +90,7 @@ def make_figure(g, sellers_set, M=5, rf=None):
     positions = Node.get_positions(g, sellers_set, M, "weight", rf, extended_return=True)
 
     # Labels etc.
-    labels, colors, sizes = make_labels_colors_sizes(g, positions, sellers_set, chart_node_ids)
+    labels, colors, sizes = make_labels_colors_sizes(g, positions, sellers_set, chart_node_ids, show_labels)
     fig = go.Figure()
     gt_build_plotly(fig, chart_node_ids, chart_xy, chart_edges, labels, colors, sizes)
     return fig

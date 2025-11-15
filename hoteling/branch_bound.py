@@ -256,7 +256,7 @@ class Node:
     
 
 class BaseRevenueFunction:
-    def __init__(self, base_cost: float):
+    def __init__(self, base_cost: float = 0.):
         self.base_cost = base_cost
 
     def __call__(self, distance: float) -> float:

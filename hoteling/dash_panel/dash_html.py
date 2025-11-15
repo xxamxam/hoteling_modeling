@@ -12,6 +12,7 @@ from hoteling.algorithms.branch_bound import BaseRevenueFunction, Node
 
 from dash import dcc, html
 from .dash_plot import make_figure
+from .dash_modal import create_bb_progress_modal
 
 # Layout constants
 LEFT_PANEL_WIDTH_PERCENT = 20
@@ -310,4 +311,5 @@ def create_layout(game):
                 html.Pre(id="stats-display", children=stats_text, style={"border": "1px solid #ddd", "padding": "5px", "flex": "1", "overflowY": "auto"}),
             ]),
         ]),
+        create_bb_progress_modal()
     ])

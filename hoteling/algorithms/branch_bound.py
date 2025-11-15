@@ -13,6 +13,29 @@ from enum import Enum
 from hoteling.game_evaluation import evaluate_sellers
 
 
+class BBCallback:
+    """
+    Callback class for B&B algorithm.
+    Allows monitoring progress and stopping early.
+    """
+    def __init__(self, num_updates=10):
+        self.is_cancelled = False
+        self.best_values = []
+        self.iteration_count = 0
+        self.num_updates = num_updates  # Update graph every num_updates iterations
+
+    def on_iteration(self, best_value, iteration):
+        self.iteration_count = iteration
+        if len(self.best_values) == 0 or best_value > self.best_values[-1]:
+            self.best_values.append(best_value)
+
+    def should_stop(self):
+        return self.is_cancelled
+
+    def cancel(self):
+        self.is_cancelled = True
+
+
 class MyCache:
     def __init__(self, maxsize=200_000):
         self.cache = LRUCache(maxsize=maxsize)
@@ -175,11 +198,15 @@ class BBHeap:
         next_item, minus_value = self.queue.popitem()
         return next_item, -minus_value
         
-    def run(self, max_iterations=1000):
-        for _ in range(max_iterations):
+    def run(self, max_iterations=1000, callback=None):
+        for iteration in range(max_iterations):
+            if callback and callback.should_stop():
+                break
             node_to_expand, value = self.select_node_to_expand()
             self.expand_node(node_to_expand, value)
-            
+            if callback:
+                callback.on_iteration(self.best_value, iteration)
+
             if len(self.queue) == 0:
                 # if there is no more items to explore
                 break
@@ -267,8 +294,24 @@ class BBTree:
             parent.bound = max(parent.bound, cur_node.bound)
             cur_node = parent
         
-    def run(self, max_iterations=1000):
-        for _ in range(max_iterations):
+    def run(self, max_iterations=1000, callback=None):
+        for iteration in range(max_iterations):
+            if callback and callback.should_stop():
+                break
             node_to_expand = self.select_node_to_expand(self.root)
             self.expand_node(node_to_expand)
             self.backpropagate(node_to_expand)
+            if callback:
+                callback.on_iteration(self.best_value, iteration)
+
+    def step(self, callback=None):
+        if len(self.queue) == 0:
+            return False  # finished
+        node_to_expand, value = self.queue.popitem()
+        self.queue.push(node_to_expand, -value)  # ? Wait, no, the popitem is the next to expand
+
+        self.expand_node(node_to_expand, value)
+        if callback:
+            callback.on_iteration_update(self.best_value)  # ? But iteration not known
+
+        return True if len(self.queue) > 0 else False

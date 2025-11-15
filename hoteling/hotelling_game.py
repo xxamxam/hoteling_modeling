@@ -65,7 +65,7 @@ class HotellingGame:
             self.sellers_set.add(node_id)
             return f"Added seller {node_id}"
 
-    def run_branch_and_bound(self):
+    def run_branch_and_bound(self, callback=None):
         if self.graph is None:
             raise ValueError("Graph not set")
         bbt = BBHeap(self.graph,
@@ -75,7 +75,7 @@ class HotellingGame:
                      cache_maxsize=self.cache_size
                      )
 
-        bbt.run(max_iterations=self.max_iter)
+        bbt.run(max_iterations=self.max_iter, callback=callback)
         self.sellers_set = set(int(x) for x in bbt.occupation)
         run_stats = bbt.run_stat
         return f"B&B completed, found {len(self.sellers_set)} sellers.\n Running statistics: {run_stats}"

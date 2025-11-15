@@ -44,6 +44,8 @@ def create_dash_app(g, initial_M=3, rf=None):
         Output("click-info", "children"),
         Output("stats-display", "children"),
         Output("rf", "data"),
+        Output("bb-progress-modal", "style"),
+        Output("bb-progress-graph", "figure"),
         Input("graph", "clickData"),
         Input("M-input", "value"),
         Input("base-input", "value"),
@@ -66,14 +68,16 @@ def create_dash_app(g, initial_M=3, rf=None):
         State("upload-graph", "filename"),
         State("show-labels-checkbox", "value"),
         Input("load-file-btn", "n_clicks"),
+        Input("bb-stop-btn", "n_clicks"),
         prevent_initial_call=True,
     )
     def update_graph(click, m_val, base_val, recompute, bb, reset, generate,
                      max_iter_input, cache_input, generator, line_n, star_n_leaves,
                      tree_n, tree_seed, grid_rows, grid_cols, sellers_data, rf_data,
-                     upload_contents, upload_filename, show_labels_checkbox, load_file):
+                     upload_contents, upload_filename, show_labels_checkbox, load_file, bb_stop):
         # Get triggered component
         trigger = dash.callback_context.triggered[0]["prop_id"].split(".")[0] if dash.callback_context.triggered else None
+        import plotly.graph_objects as go
         show_labels = "show" in (show_labels_checkbox or [])
         game.update_parameters(M=m_val, base_cost=base_val,
                                max_iter=max_iter_input, cache_size=cache_input)
@@ -96,10 +100,12 @@ def create_dash_app(g, initial_M=3, rf=None):
         elif trigger == "reset-btn":
             game.reset_sellers()
             info_text = "Sellers reset"
-    
+
         elif trigger == "bb-btn":
+            from hoteling.algorithms.branch_bound import BBCallback
+            callback = BBCallback(num_updates=10)
             try:
-                info_text = game.run_branch_and_bound()
+                info_text = game.run_branch_and_bound(callback)
             except Exception as e:
                 info_text = f"B&B error: {str(e)}"
 
@@ -134,10 +140,33 @@ def create_dash_app(g, initial_M=3, rf=None):
         else:
             info_text = "Updated parameters"
 
-        fig = game.make_figure(show_labels=show_labels, redraw=recompute)
+        fig = game.make_figure(show_labels=show_labels)
         stats_text = game.compute_stats()
         game_state = game.to_dict()
 
-        return fig, list(game.sellers_set), info_text, stats_text, game_state["rf"]
+        # Determine modal state
+        if trigger == "bb-btn":
+            fig_progress = go.Figure()
+            if 'callback' in locals() and callback.best_values:
+                iterations = list(range(len(callback.best_values)))
+                fig_progress.add_trace(go.Scatter(x=iterations, y=callback.best_values, mode="lines+markers", name="Best Value"))
+                fig_progress.update_layout(title="B&B Convergence", xaxis_title="Iteration", yaxis_title="Best Revenue")
+        else:
+            fig_progress = go.Figure()
+
+        style_modal = {
+            "position": "fixed",
+            "top": "15%" if trigger == "bb-btn" else "20%",  # But perhaps simplify to one
+            "left": "15%" if trigger == "bb-btn" else "20%",
+            "width": "70%" if trigger == "bb-btn" else "60%",
+            "height": "70%" if trigger == "bb-btn" else "40%",
+            "backgroundColor": "white",
+            "border": "1px solid black",
+            "zIndex": 1000,
+            "padding": "10px",
+            "display": "block" if trigger == "bb-btn" else "none"
+        }
+
+        return fig, list(game.sellers_set), info_text, stats_text, game_state["rf"], style_modal, fig_progress
 
     return app

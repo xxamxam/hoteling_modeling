@@ -131,7 +131,7 @@ Provides functions to generate different graph structures:
 
 - `BaseRevenueFunction`: Revenue calculation class
 - `Node`: Position calculation for sellers
-- `BBTree`: Optimization algorithm to find optimal seller placements
+- `BBTree` `BBHeap`: Optimization algorithm to find optimal seller placements
 
 #### HotellingGame Class (`hotelling_game.py`)
 
@@ -202,6 +202,7 @@ In this implementation:
 - Graph represents market locations
 - Edges represent possible connections
 - Sellers compete for consumer clusters
+- All sellers sell for one price
 - Branch & Bound finds optimal M seller placements
 
 ## Parameters
@@ -217,13 +218,11 @@ In this implementation:
 
 Each with customizable size parameters for experimentation
 
-## Dependencies
+## Main dependencies
 
 - graph-tool: Graph manipulation and algorithms
 - dash: Web application framework
 - plotly: Graph visualization
-- numpy: Numerical computations
-- pandas (optional, for data processing)
 
 ## Contributing
 

@@ -1,7 +1,7 @@
 # Hotelling's Model Simulation and Optimization
 
 <p align="center">
-<img align="middle" src="assets/app_demo.png" alt="App demo" width="500" height="390" />
+<img align="middle" src="assets/app_demo.png" alt="App demo" width="90%" />
 </p>
 
 ## Table of Contents

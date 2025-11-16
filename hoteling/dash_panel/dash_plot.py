@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 
 from graph_tool.draw import sfdp_layout
 
-from hoteling.game_evaluation import evaluate_sellers
+from hoteling.hoteling_game.game_evaluation import evaluate_sellers
 from hoteling.algorithms.branch_bound import BaseRevenueFunction
 
 # Global for layout persistence
@@ -97,7 +97,13 @@ def make_figure(g,
         pass
 
     # Positions
-    positions = evaluate_sellers(g, sellers_set, M, "weight", rf, extended_return=True)
+    positions = evaluate_sellers(g,
+                                 sellers_set,
+                                 M,
+                                 "weight",
+                                 rf,
+                                 extended_return=True
+                                 )
 
     # Labels etc.
     labels, colors, sizes = make_labels_colors_sizes(g, positions, sellers_set, chart_node_ids, show_labels)

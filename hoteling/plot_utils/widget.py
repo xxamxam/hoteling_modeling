@@ -5,10 +5,11 @@ import ipywidgets as W
 from IPython.display import display, clear_output
 from graph_tool.draw import sfdp_layout
 
-from hoteling.algorithms.branch_bound import BBTree, BaseRevenueFunction, Node
-from hoteling.game_evaluation import evaluate_sellers
+from hoteling.algorithms.branch_bound import BBTree, Node
+from hoteling.hoteling_game.cost_functions import BaseRevenueFunction
+from hoteling.hoteling_game.game_evaluation import evaluate_sellers
 
-# --- Экспорт из graph-tool ---
+
 def gt_export_layout(g, pos_prop=None):
     if pos_prop is None:
         pos_prop = sfdp_layout(g)
@@ -29,7 +30,8 @@ def gt_build_plotly(fig, node_ids, xy, edges, labels, colors, sizes, show_labels
     id2idx = {nid: i for i, nid in enumerate(node_ids)}
     for u, v in edges:
         i0, i1 = id2idx[u], id2idx[v]
-        x0,y0 = xy[i0]; x1,y1 = xy[i1]
+        x0, y0 = xy[i0]
+        x1, y1 = xy[i1]
         ex += [x0, x1, None]
         ey += [y0, y1, None]
     fig.add_trace(go.Scatter(x=ex, y=ey, mode="lines",
@@ -39,7 +41,7 @@ def gt_build_plotly(fig, node_ids, xy, edges, labels, colors, sizes, show_labels
 
     labels_html = [s.replace("\n", "<br>") for s in labels]
     fig.add_trace(go.Scatter(
-        x=xy[:,0], y=xy[:,1],
+        x=xy[:, 0], y=xy[:, 1],
         mode="markers+text",
         marker=dict(color=colors, size=sizes, line=dict(color="#263238", width=1)),
         text=labels_html, textposition="top center",
@@ -50,7 +52,7 @@ def gt_build_plotly(fig, node_ids, xy, edges, labels, colors, sizes, show_labels
     fig.data[1].customdata = np.array(node_ids)
     fig.update_layout(
         xaxis=dict(visible=False), yaxis=dict(visible=False),
-        margin=dict(l=10,r=10,t=10,b=10), height=700,
+        margin=dict(l=10, r=10, t=10, b=10), height=700,
         clickmode="event+select"
     )
     # подсветка выбранной точки
@@ -165,13 +167,16 @@ def panel_gt_interactive(g, revenue_function: BaseRevenueFunction, pos_prop=None
             clear_output(wait=True)
             fw = go.FigureWidget(fig)
             scatter = fw.data[1]
+            
             def on_click(trace, points, state):
                 if not points.point_inds:
                     return
                 idx = points.point_inds[0]
                 v_id = int(scatter.customdata[idx])
-                if v_id in sellers_set: sellers_set.remove(v_id)
-                else: sellers_set.add(v_id)
+                if v_id in sellers_set:
+                    sellers_set.remove(v_id)
+                else:
+                    sellers_set.add(v_id)
                 render()
             scatter.on_click(on_click)
             display(fw)
@@ -222,6 +227,7 @@ def panel_gt_interactive(g, revenue_function: BaseRevenueFunction, pos_prop=None
         nonlocal max_iterations
         max_iterations = int(change["new"])
         render()
+
     def on_base_cost_change(change):
         nonlocal base_cost, revenue_function
         base_cost = float(change["new"])
@@ -242,6 +248,6 @@ def panel_gt_interactive(g, revenue_function: BaseRevenueFunction, pos_prop=None
     left_box = W.VBox([controls, out_plot], layout=W.Layout(flex="1 1 auto"))
     ui = W.HBox([left_box, stats_box], layout=W.Layout(width="100%"))
     # display(W.VBox([controls, out_plot]))
-        # первый рендер
+    # первый рендер
     render()
     display(ui)

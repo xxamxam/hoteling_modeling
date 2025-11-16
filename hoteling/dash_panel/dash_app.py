@@ -5,7 +5,7 @@ import dash
 
 from hoteling.algorithms.branch_bound import BaseRevenueFunction
 from hoteling.dash_panel.dash_html import create_layout
-from hoteling.hotelling_game import HotellingGame
+from hoteling.hoteling_game.hotelling_game import HotellingGame
 
 
 def create_dash_app(g, initial_M=3, rf=None):

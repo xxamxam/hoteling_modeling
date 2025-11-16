@@ -11,6 +11,7 @@ import graph_tool.search as gts
 
 from typing import Dict
 
+from hoteling.hoteling_game.cost_functions import BaseRevenueFunction
 
 def nearest_source_labels(g: Graph, weight_ep, sources, source_ids=None, eps=1e-12):
     """
@@ -100,16 +101,21 @@ def nearest_source_labels(g: Graph, weight_ep, sources, source_ids=None, eps=1e-
     return dist_vp, nearest_vp, near_set_vp
 
 
-def get_revenue(g, distances, nearest_set, revenue_function):
+def get_revenue(g,
+                distances,
+                nearest_set,
+                revenue_function: BaseRevenueFunction
+                ):
+
     vertice_revenue = defaultdict(float)
     for v in g.vertices():
         v = int(v)
         nearest_sellers = nearest_set[v]
+        
         dist = distances[v]
         vertex_value = revenue_function(dist)
-        assert vertex_value >= 0.0, "Revenue function must be non-negative"
 
-        num_sellers = len(nearest_set[v])
+        num_sellers = len(nearest_sellers)
         for seller in nearest_sellers:
             vertice_revenue[seller] += vertex_value/num_sellers
     return vertice_revenue
@@ -155,6 +161,8 @@ def bin_search(revenues: Dict, M, tol=1e-10):
             remain_budgets[pos] -= lambd
     assert sum(num_sellers.values()) == M, f"error. Get {num_sellers=}, while \
         {sum(num_sellers.values())} != {M}.\n{lambd=}  {revenues}"
+    # max_rev = max(revenues[k]/num_sellers[k] for k in revenues.keys())
+    # delta = max_rev - lambd
     return num_sellers, lambd
 
 

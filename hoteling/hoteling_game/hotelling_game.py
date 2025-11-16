@@ -1,14 +1,17 @@
 # hotelling_game.py - Main game state and logic for Hotelling's model
 
-import numpy as np
-from hoteling.algorithms.branch_bound import BaseRevenueFunction, Node
+from hoteling.algorithms.node import Node
+from hoteling.hoteling_game.cost_functions import BaseRevenueFunction
 from hoteling.generators.graph_generators import (
     generate_line_graph, generate_star_graph, generate_random_tree,
     generate_grid_graph
 )
+
 from hoteling.algorithms.branch_bound import BBTree, BBHeap
 from hoteling.dash_panel.dash_plot import make_figure
-from hoteling.game_evaluation import evaluate_sellers
+from hoteling.hoteling_game.game_evaluation import evaluate_sellers
+
+    
 
 class HotellingGame:
     def __init__(self, graph=None, initial_M=3, rf=None, max_iter=1000, cache_size=200000):

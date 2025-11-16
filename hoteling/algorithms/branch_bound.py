@@ -1,17 +1,14 @@
 # Requires: graph-tool (C++ backend)
 import math
-import dataclasses
 from dataclasses import dataclass
-from typing import List
 
 from graph_tool import Graph
 from heapdict import heapdict
 
 from cachetools import LRUCache
-from enum import Enum
 
-from hoteling.game_evaluation import evaluate_sellers
-
+from hoteling.algorithms.node import Node, Status, TreeNode
+from hoteling.hoteling_game.cost_functions import BaseRevenueFunction
 
 class MyCache:
     def __init__(self, maxsize=200_000):
@@ -22,80 +19,6 @@ class MyCache:
 
     def get(self, S):
         return self.cache.get(frozenset(S))
-
-
-class BaseRevenueFunction:
-    def __init__(self, base_cost: float = 0.):
-        self.base_cost = base_cost
-
-    def __call__(self, distance: float) -> float:
-        return max(0.0, self.base_cost - distance)
-    
-
-
-
-# classes for B&B method
-
-
-class Status(str, Enum):
-    UNEXPANDED = "UNEXPANDED"
-    EXPANDED = "EXPANDED"
-    FULLY_EXPANDED = "FULLY_EXPANDED"
-
-
-@dataclass
-class Node:
-    """
-    parameters:
-    g: GraphWrapper
-    M: number of agents
-    occupied_vertices: set of occupied vertices
-    cache: cached values for set value
-    """
-    graph: Graph
-    weights_name: str = "weight"
-    M: int = 0
-    occupied_vertices: set = dataclasses.field(default_factory=set)
-    vertices: set = dataclasses.field(default_factory=set)
-
-    def __hash__(self) -> int:
-        return hash(frozenset(self.occupied_vertices))
-
-    def __post_init__(self,):
-        if len(self.vertices) == 0:
-            self.vertices = {int(v) for v in self.graph.vertices()}
-
-    def compute_value(self,
-                      revenue_function: BaseRevenueFunction,
-                      tol: float) -> float:
-        lambd = evaluate_sellers(
-            self.graph,
-            self.occupied_vertices,
-            self.M,
-            self.weights_name,
-            revenue_function,
-            tol=tol,
-            extended_return=False
-            )
-
-        assert isinstance(lambd, float)
-        return lambd
-
-    def get_actions(self):
-        return self.vertices - self.occupied_vertices
-
-@dataclass
-class TreeNode(Node):
-    """
-    The same as Node, but with additional fields
-    """
-    parent: 'TreeNode' = None
-    status: Status = Status.UNEXPANDED
-
-    children: List['TreeNode'] = dataclasses.field(default_factory=list)
-    value: float = -float("inf")
-    bound: float = -float("inf")
-
 
 
 
@@ -137,7 +60,8 @@ class BBHeap:
         actions = node.get_actions()
 
         if self.verbose:
-            print(f"base: Vertices: {node.occupied_vertices} val: {node_value}")
+            print(f"base: Vertices: {node.occupied_vertices}\
+                    val: {node_value}")
         for action in actions:
 
             new_occupied = set(node.occupied_vertices)
@@ -156,11 +80,13 @@ class BBHeap:
             child_value = child_node.compute_value(self.revenue_function, self.tol)
             self.cache.put(new_occupied, child_value)
             if self.verbose:
-                print(f"new node: Vertices: {new_occupied} val: {child_value}. better: {child_value >= node_value - 2 * self.tol}")
+                print(f"new node: Vertices: {new_occupied} val: {child_value}.\
+                       better: {child_value >= node_value - 2 * self.tol}")
 
             if child_value >= node_value - 2 * self.tol:
                 if self.verbose:
-                    print(f"new node: Vertices: {new_occupied} val: {child_value}")
+                    print(f"new node: Vertices: {new_occupied} \
+                           val: {child_value}")
                 self.run_stat.open_nodes += 1
                 self.queue[child_node] = - child_value  # priority = -value
 

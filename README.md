@@ -46,8 +46,8 @@ This project implements a simulation and optimization framework for Hotelling's 
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/xxamxam/hoteling_modeling.git
-   cd hoteling_modeling
+   git clone https://github.com/xxamxam/hotelling_modeling.git
+   cd hotelling_modeling
    ```
 2. Install dependencies using pixi or conda:
 
@@ -70,7 +70,7 @@ This project implements a simulation and optimization framework for Hotelling's 
 To run the interactive web application:
 
 ```bash
-python -m hoteling.dash_panel.run --port=8050
+python -m hotelling.dash_panel.run --port=8050
 ```
 
 This will start a Dash server on http://127.0.0.1:8050 with debug mode enabled.
@@ -78,9 +78,9 @@ This will start a Dash server on http://127.0.0.1:8050 with debug mode enabled.
 Alternatively, from python:
 
 ```python
-from hoteling.generators.graph_generators import generate_line_graph
-from hoteling.algorithms.branch_bound import BaseRevenueFunction
-from hoteling.dash_panel.dash_app import create_minimal_dash_app
+from hotelling.generators.graph_generators import generate_line_graph
+from hotelling.algorithms.branch_bound import BaseRevenueFunction
+from hotelling.dash_panel.dash_app import create_minimal_dash_app
 g = generate_line_graph(6)
 rf = BaseRevenueFunction(base_cost=10)
 app = create_minimal_dash_app(g, initial_M=3, rf=rf)
@@ -90,9 +90,9 @@ app.run(debug=True)
 ## Project Structure
 
 ```
-hoteling/
+hotelling/
 ├── game_evaluation.py   # Game evaluation utilities
-├── hoteling_game.py     # Core HotellingGame class with state management
+├── hotelling_game.py     # Core HotellingGame class with state management
 ├── algorithms/          # Algorithm implementations
 │   └── branch_bound.py  # Branch & Bound optimization
 ├── dash_panel/          # Web dashboard components
@@ -163,8 +163,8 @@ Key features:
 ### API Example
 
 ```python
-from hoteling.generators.graph_generators import generate_line_graph
-from hoteling.algorithms.branch_bound import BaseRevenueFunction, BBTree
+from hotelling.generators.graph_generators import generate_line_graph
+from hotelling.algorithms.branch_bound import BaseRevenueFunction, BBTree
 
 # Create a line graph with 6 vertices
 g = generate_line_graph(6)
@@ -182,7 +182,7 @@ print(f"Optimal seller positions: {bbt.occupation}")
 #### Loading Graphs from Files (`generators/graph_reader.py`)
 
 ```python
-from hoteling.generators.graph_reader import read_graph_from_file
+from hotelling.generators.graph_reader import read_graph_from_file
 
 # Load graph from file (format: first line is n, then n lines of "u v weight")
 g = read_graph_from_file("path/to/graph.txt")
